@@ -1,0 +1,47 @@
+---
+title: "DataVisGroup"
+author: "Hrag Soussani"
+date: "2024-10-28"
+output: pdf_document
+---
+
+```{r}
+
+library(ggplot2)
+library(ggmap)
+library(dplyr)
+library(rnaturalearth)
+library(sf)
+library(viridis)
+
+data <- read.csv("Europe-Central-Asia_2018-2024_Sep27.csv")
+```
+
+
+```{r}
+
+nagorno_karabakh <- st_read("nagorno-karabakh-borders.geojson")
+nagorno_karabakh <- st_make_valid(nagorno_karabakh)
+nagorno_karabakh <- st_transform(nagorno_karabakh, crs = 4326)
+nagorno_karabakh_outline <- st_union(nagorno_karabakh)
+world <- ne_countries(scale = "medium", returnclass = "sf")
+highlighted_regions <- world %>% filter(name == "Azerbaijan")
+data_battle <- data %>% filter(event_type == "Battles")
+
+ggplot() +
+  borders("world", xlim = c(43, 50.5), ylim = c(38, 42), colour = "gray85", fill = "gray80") +
+  geom_sf(data = highlighted_regions, fill = NA, color = "red", size = 0.5) +
+  geom_sf(data = nagorno_karabakh_outline, fill = NA, color = "blue", size = 2) +
+  geom_point(data = data_battle, aes(x = longitude, y = latitude, color = fatalities), alpha = 1) +
+  labs(title = "Battle Locations in Azerbaijan and Nagorno-Karabakh (2018-2024)",
+       subtitle = "Points colored by Fatalities (x100)",
+       x = "Longitude", y = "Latitude") +
+  theme_minimal() +
+  coord_sf(xlim = c(43, 50.5), ylim = c(38, 42), expand = FALSE)
+
+
+
+```
+
+
+
